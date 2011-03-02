@@ -125,6 +125,8 @@ namespace OpenTK_GL_Outline_example
 		protected override void OnLoad (EventArgs e)
 		{
 			base.OnLoad (e);
+
+			MakeCurrent ();
 			
 			GL.GenBuffers (1, out vboVertexBuffer); //Create uint VBO buffer reference
 			GL.BindBuffer (BufferTarget.ArrayBuffer, vboVertexBuffer);	//'activate' the selected VBO buffer, then set data (below)			
@@ -143,17 +145,15 @@ namespace OpenTK_GL_Outline_example
 			
 			//Is this equivalent to GLortho?
 			Matrix4 perspective = Matrix4.CreatePerspectiveFieldOfView (MathHelper.DegreesToRadians (45f), ((float)Size.Width / (float)Size.Height), 0.1f, 10000f);
-			/*
 			unsafe {
 				GL.LoadMatrix (&perspective.Row0.X);
-			}
-			*/			
+			}			
 			
-			GL.LoadMatrix (ref perspective);
+			//GL.LoadMatrix (ref perspective);
 			
 			GL.Viewport (0, 0, Size.Width, Size.Height);
 			
-			GL.Rotate (270f, 0f, 0f, 1f);
+			//GL.Rotate (270f, 0f, 0f, 1f);
 			GL.ShadeModel (ShadingModel.Flat);
 			GL.ClearDepth (1f);
 			GL.Enable (EnableCap.DepthTest);
@@ -172,19 +172,16 @@ namespace OpenTK_GL_Outline_example
 			GL.Clear (ClearBufferMask.ColorBufferBit);
 			GL.MatrixMode (MatrixMode.Modelview);
 			
-			Vector3 m_eye = new Vector3(-25f, 15f, 15f);
-			// TODO Point m_target at the centre of the visible segment (calculate 'middle' in/from GridCube)
+			Vector3 m_eye = new Vector3(0f, 0f, 5f);
 			Vector3 m_target = new Vector3(0f, 0f, 0f);
 			Vector3 m_up = new Vector3(0f, 1f, 0f);
 			
 			//Matrix4 matrix = Matrix4.LookAt (50f, 100f, 100f, 0f, 0f, 0f, 0f, 0f, 1f);
 			Matrix4 matrix = Matrix4.LookAt (m_eye, m_target, m_up);
-			/*
 			unsafe {
 				GL.LoadMatrix (&matrix.Row0.X);
 			}
-			*/
-			GL.LoadMatrix(ref matrix.Row0.X);
+			//GL.LoadMatrix(ref matrix.Row0.X);
 			
 			
 			//Handle Vertex VBO data
