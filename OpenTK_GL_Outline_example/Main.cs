@@ -1,11 +1,23 @@
 using System;
+using System.Drawing;
 using System.Collections;
 using System.Collections.Generic;
 using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Input;
+using System.Runtime.InteropServices;
 
 namespace OpenTK_GL_Outline_example
 {
+
+	/*
+		From http://www.google.com/codesearch/p?hl=en#q2SoGSWrDvE/trunk/src/MainForm.cs&q=lang:c%23%20%22GL.ClearDepth%22%20opentk&sa=N&cd=2&ct=rc
+		GL.PolygonOffset(1.0f, -1.0f);
+		GL.EnableClientState(EnableCap.PolygonOffsetFill);
+
+		See also https://github.com/benjcooley/sable-fx -> http://www.google.com/codesearch/p?hl=en#fR0ejzflOaE/ThirdParty/OpenTK-1.0/Source/Examples/OpenGL/1.1/StencilCSG.cs&q=lang:c%23%20%22GL.ClearDepth%22%20opentk&sa=N&cd=3&ct=rc
+	*/
 	class MainWindow : GameWindow
 	{
 		//Define the cubes overall size at Class/Static level - Add 'offsets' to create individual cubes                
@@ -66,6 +78,8 @@ namespace OpenTK_GL_Outline_example
 			indexList.Add (2);
 			indexList.Add (3);
 			indexList.Add (0);
+
+			colourList.AddRange(colorArray);
 			
 			//right side triangles
 			indexList.Add (5);
@@ -74,6 +88,8 @@ namespace OpenTK_GL_Outline_example
 			indexList.Add (3);
 			indexList.Add (4);
 			indexList.Add (5);
+
+			colourList.AddRange(colorArray);
 			
 			//back side triangles
 			indexList.Add (6);
@@ -82,6 +98,8 @@ namespace OpenTK_GL_Outline_example
 			indexList.Add (4);
 			indexList.Add (7);
 			indexList.Add (6);
+
+			colourList.AddRange(colorArray);
 			
 			//left side triangles
 			indexList.Add (1);
@@ -90,6 +108,8 @@ namespace OpenTK_GL_Outline_example
 			indexList.Add (7);
 			indexList.Add (2);
 			indexList.Add (1);
+
+			colourList.AddRange(colorArray);
 			
 			//top side triangles
 			indexList.Add (5);
@@ -98,6 +118,8 @@ namespace OpenTK_GL_Outline_example
 			indexList.Add (1);
 			indexList.Add (0);
 			indexList.Add (5);
+
+			colourList.AddRange(colorArray);
 			
 			//bottom side triangles
 			indexList.Add (3);
@@ -106,6 +128,8 @@ namespace OpenTK_GL_Outline_example
 			indexList.Add (7);
 			indexList.Add (4);
 			indexList.Add (3);
+
+			colourList.AddRange(colorArray);
 		}
 
 		public uint vboVertexBuffer;
@@ -128,18 +152,6 @@ namespace OpenTK_GL_Outline_example
 
 			MakeCurrent ();
 			
-			GL.GenBuffers (1, out vboVertexBuffer); //Create uint VBO buffer reference
-			GL.BindBuffer (BufferTarget.ArrayBuffer, vboVertexBuffer);	//'activate' the selected VBO buffer, then set data (below)			
-			GL.BufferData (BufferTarget.ArrayBuffer, new IntPtr ((sizeof(float) * vertexList.ToArray().Length)), vertexList.ToArray(), BufferUsageHint.StaticDraw);
-
-			GL.GenBuffers (1, out vboIndexBuffer);	//Create uint indices buffer reference
-			GL.BindBuffer (BufferTarget.ElementArrayBuffer, vboIndexBuffer);	//'activate' the selected indices buffer, then set data (below)
-			GL.BufferData (BufferTarget.ElementArrayBuffer, new IntPtr ((sizeof(ushort) * indexList.ToArray().Length)), indexList.ToArray(), BufferUsageHint.StaticDraw);
-			
-			GL.GenBuffers (1, out vboColourBuffer);	//Create uint color buffer reference
-			GL.BindBuffer (BufferTarget.ArrayBuffer, vboColourBuffer);	//'activate' the selected color buffer, then set data (below)
-			GL.BufferData (BufferTarget.ArrayBuffer, new IntPtr ((sizeof(byte) * colourList.ToArray().Length)), colourList.ToArray(), BufferUsageHint.StaticDraw);
-			
 			GL.MatrixMode (MatrixMode.Modelview);
 			GL.LoadIdentity ();
 			
@@ -155,10 +167,27 @@ namespace OpenTK_GL_Outline_example
 			
 			//GL.Rotate (270f, 0f, 0f, 1f);
 			GL.ShadeModel (ShadingModel.Flat);
-			GL.ClearDepth (1f);
 			GL.Enable (EnableCap.DepthTest);
 			GL.DepthFunc (DepthFunction.Lequal);
+
+			// Clear the back buffer.
+			GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+			//GL.ClearDepth (1f);
+
 			GL.Hint (HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
+			
+			//Initialise GL VBO Buffers
+			GL.GenBuffers (1, out vboVertexBuffer); //Create uint VBO buffer reference
+			GL.BindBuffer (BufferTarget.ArrayBuffer, vboVertexBuffer);	//'activate' the selected VBO buffer, then set data (below)			
+			GL.BufferData (BufferTarget.ArrayBuffer, new IntPtr ((sizeof(float) * vertexList.ToArray().Length)), vertexList.ToArray(), BufferUsageHint.StaticDraw);
+
+			GL.GenBuffers (1, out vboIndexBuffer);	//Create uint indices buffer reference
+			GL.BindBuffer (BufferTarget.ElementArrayBuffer, vboIndexBuffer);	//'activate' the selected indices buffer, then set data (below)
+			GL.BufferData (BufferTarget.ElementArrayBuffer, new IntPtr ((sizeof(ushort) * indexList.ToArray().Length)), indexList.ToArray(), BufferUsageHint.StaticDraw);
+			
+			GL.GenBuffers (1, out vboColourBuffer);	//Create uint color buffer reference
+			GL.BindBuffer (BufferTarget.ArrayBuffer, vboColourBuffer);	//'activate' the selected color buffer, then set data (below)
+			GL.BufferData (BufferTarget.ArrayBuffer, new IntPtr ((sizeof(byte) * colourList.ToArray().Length)), colourList.ToArray(), BufferUsageHint.StaticDraw);
 			
 		}
 
