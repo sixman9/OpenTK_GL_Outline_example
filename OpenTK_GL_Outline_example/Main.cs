@@ -20,6 +20,10 @@ namespace OpenTK_GL_Outline_example
 	*/
 	class MainWindow : GameWindow
 	{
+		//Variables-----\
+        private bool fullscreen;
+        //Variables-----/
+		
 		//Define the cubes overall size at Class/Static level - Add 'offsets' to create individual cubes                
 		//ftr
 		protected static readonly Vector3 frontTopRightCorner = new Vector3 (1.0f, 1.0f, 0.0f);
@@ -40,8 +44,10 @@ namespace OpenTK_GL_Outline_example
 		protected static readonly Vector3 backBottomRightCorner = new Vector3 (0.0f, 0.0f, -1.0f);
 
 
-		public MainWindow () : base(800, 600)
+		public MainWindow () : base(800, 600, GraphicsMode.Default, "OpenGL outline offset example.")
 		{
+            VSync = VSyncMode.On;
+			
 			//ftr - index 0
 			vectorVertexList.Add(frontTopRightCorner);
 			
@@ -152,18 +158,21 @@ namespace OpenTK_GL_Outline_example
 
 			MakeCurrent ();
 			
-			GL.MatrixMode (MatrixMode.Modelview);
+			GL.MatrixMode (MatrixMode.Projection);
 			GL.LoadIdentity ();
 			
 			//Is this equivalent to GLortho?
 			Matrix4 perspective = Matrix4.CreatePerspectiveFieldOfView (MathHelper.DegreesToRadians (45f), ((float)Size.Width / (float)Size.Height), 0.1f, 10000f);
+			/*
 			unsafe {
 				GL.LoadMatrix (&perspective.Row0.X);
-			}			
+			}
+			*/	
 			
-			//GL.LoadMatrix (ref perspective);
+			GL.LoadMatrix (ref perspective);
 			
-			GL.Viewport (0, 0, Size.Width, Size.Height);
+			GL.Viewport(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, ClientRectangle.Height);
+			//GL.Viewport (0, 0, Size.Width, Size.Height);
 			
 			//GL.Rotate (270f, 0f, 0f, 1f);
 			GL.ShadeModel (ShadingModel.Flat);
@@ -191,6 +200,33 @@ namespace OpenTK_GL_Outline_example
 			
 		}
 
+        protected override void OnResize(EventArgs e) {
+            base.OnResize(e);
+
+            GL.Viewport(ClientRectangle.X, ClientRectangle.Y, ClientRectangle.Width, ClientRectangle.Height);
+
+            GL.MatrixMode(MatrixMode.Projection);
+            Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4, Width / (float)Height, .1f, 1000f);
+			//Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView (MathHelper.DegreesToRadians (45f), ((float)Size.Width / (float)Size.Height), 0.1f, 10000f);
+            GL.LoadMatrix(ref projection);
+
+            GL.MatrixMode(MatrixMode.Modelview);
+            GL.LoadIdentity();
+        }
+
+        protected override void OnUpdateFrame(FrameEventArgs e) {
+            if (Keyboard[Key.Escape])
+                Exit();
+
+            if (Keyboard[Key.F1]) {
+                fullscreen = !fullscreen;
+                if (fullscreen)
+                    WindowState = WindowState.Fullscreen;
+                else
+                    WindowState = WindowState.Normal;
+            }
+        }
+
 		protected override void OnRenderFrame (FrameEventArgs e)
 		{
 			base.OnRenderFrame (e);
@@ -201,16 +237,18 @@ namespace OpenTK_GL_Outline_example
 			GL.Clear (ClearBufferMask.ColorBufferBit);
 			GL.MatrixMode (MatrixMode.Modelview);
 			
-			Vector3 m_eye = new Vector3(0f, 0f, 5f);
-			Vector3 m_target = new Vector3(0f, 0f, 0f);
+			Vector3 m_eye = new Vector3(-3f, 3f, 5f);
+			Vector3 m_target = new Vector3(0.5f, 0.5f, 0.5f);
 			Vector3 m_up = new Vector3(0f, 1f, 0f);
 			
 			//Matrix4 matrix = Matrix4.LookAt (50f, 100f, 100f, 0f, 0f, 0f, 0f, 0f, 1f);
 			Matrix4 matrix = Matrix4.LookAt (m_eye, m_target, m_up);
+			/*
 			unsafe {
 				GL.LoadMatrix (&matrix.Row0.X);
 			}
-			//GL.LoadMatrix(ref matrix.Row0.X);
+			*/
+			GL.LoadMatrix(ref matrix.Row0.X);
 			
 			
 			//Handle Vertex VBO data
@@ -232,6 +270,8 @@ namespace OpenTK_GL_Outline_example
 			//'Switch off' Client render states
 			GL.DisableClientState (ArrayCap.VertexArray);
 			GL.DisableClientState (ArrayCap.ColorArray);
+			
+			updateFPS();
 			
 			SwapBuffers();
 		}
@@ -259,6 +299,17 @@ namespace OpenTK_GL_Outline_example
 			
 			base.Dispose();
 		}
+
+        long time = DateTime.Now.Ticks;
+        private void updateFPS() {
+            if (DateTime.Now.Ticks - time > 10000000) {
+#if (DEBUG)
+                Console.WriteLine(time);
+#endif
+                time = DateTime.Now.Ticks;
+                Title = "FPS: " + RenderFrequency;
+            }
+        }
 		
 	}
 
@@ -271,7 +322,7 @@ namespace OpenTK_GL_Outline_example
 		public static void Main (string[] args)
 		{
 			using (MainWindow example = new MainWindow ()) {
-				example.Title = "OpenGL outline offset example.";
+				//example.Title = "OpenGL outline offset example.";
 				example.Run (30.0, 0.0);
 			}
 		}
